@@ -17,6 +17,114 @@ const firebaseConfig = {
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
     
+    var web1Ref = ref(database, 'web/web1/detail');
+
+    // Retrieve the 'amount' value
+    get(web1Ref).then(function(snapshot) {
+        var amountValue = snapshot.val();
+        
+        // Update the HTML element with the id 'amount1'
+        document.getElementById('detail1').textContent =  amountValue;
+    }).catch(function(error) {
+        console.error('Error retrieving data:', error);
+    });
+   
+    var web1Ref = ref(database, 'web/web2/detail');
+
+    // Retrieve the 'amount' value
+    get(web1Ref).then(function(snapshot) {
+        var amountValue = snapshot.val();
+        
+        // Update the HTML element with the id 'amount1'
+        document.getElementById('detail2').textContent =  amountValue;
+    }).catch(function(error) {
+        console.error('Error retrieving data:', error);
+    });
+
+    var web1Ref = ref(database, 'web/web3/detail');
+
+    // Retrieve the 'amount' value
+    get(web1Ref).then(function(snapshot) {
+        var amountValue = snapshot.val();
+        
+        // Update the HTML element with the id 'amount1'
+        document.getElementById('detail3').textContent =  amountValue;
+    }).catch(function(error) {
+        console.error('Error retrieving data:', error);
+    });
+
+    var web1Ref = ref(database, 'web/web3/day');
+
+    // Retrieve the 'amount' value
+    get(web1Ref).then(function(snapshot) {
+        var amountValue = snapshot.val();
+        
+        // Update the HTML element with the id 'amount1'
+        document.getElementById('day3').textContent =  amountValue;
+    }).catch(function(error) {
+        console.error('Error retrieving data:', error);
+    });
+    var web1Ref = ref(database, 'web/web2/day');
+
+    // Retrieve the 'amount' value
+    get(web1Ref).then(function(snapshot) {
+        var amountValue = snapshot.val();
+        
+        // Update the HTML element with the id 'amount1'
+        document.getElementById('day2').textContent =  amountValue;
+    }).catch(function(error) {
+        console.error('Error retrieving data:', error);
+    });
+    var web1Ref = ref(database, 'web/web1/day');
+
+    // Retrieve the 'amount' value
+    get(web1Ref).then(function(snapshot) {
+        var amountValue = snapshot.val();
+        
+        // Update the HTML element with the id 'amount1'
+        document.getElementById('day1').textContent =  amountValue;
+    }).catch(function(error) {
+        console.error('Error retrieving data:', error);
+    });
+
+    var web1Ref = ref(database, 'web/web3/amount');
+
+    // Retrieve the 'amount' value
+    get(web1Ref).then(function(snapshot) {
+        var amountValue = snapshot.val();
+        
+        // Update the HTML element with the id 'amount1'
+        document.getElementById('amount3').textContent = 'Rs: ' + amountValue;
+    }).catch(function(error) {
+        console.error('Error retrieving data:', error);
+    });
+
+    var web1Ref = ref(database, 'web/web2/amount');
+
+    // Retrieve the 'amount' value
+    get(web1Ref).then(function(snapshot) {
+        var amountValue = snapshot.val();
+        
+        // Update the HTML element with the id 'amount1'
+        document.getElementById('amount2').textContent = 'Rs: ' + amountValue;
+    }).catch(function(error) {
+        console.error('Error retrieving data:', error);
+    });
+
+    var web1Ref = ref(database, 'web/web1/amount');
+
+    // Retrieve the 'amount' value
+    get(web1Ref).then(function(snapshot) {
+        var amountValue = snapshot.val();
+        
+        // Update the HTML element with the id 'amount1'
+        document.getElementById('amount1').textContent = 'Rs: ' + amountValue;
+    }).catch(function(error) {
+        console.error('Error retrieving data:', error);
+    });
+
+
+
     const mkaero = document.getElementById("mkaero");
 
 mkaero.addEventListener("submit", (e) => {
@@ -338,3 +446,5 @@ function updateBackgroundImage(tabId) {
         backgroundImage.style.backgroundImage = imageUrl;
         backgroundImage.style.backgroundSize = '150px'; // Set the size to 150px
     }
+   
+    
