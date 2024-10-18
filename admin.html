@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div id="app" class="flex">
+        <aside class="w-64 bg-white p-5 shadow-md">
+            <h1 class="text-lg font-bold mb-5">Admin Dashboard</h1>
+            <nav>
+                <button data-target="viza" class="tab-btn block py-2 text-gray-600 hover:bg-gray-200 active">Visa Applications</button>
+                <button data-target="hotel" class="tab-btn block py-2 text-gray-600 hover:bg-gray-200">Hotel Bookings</button>
+                <button data-target="enquire" class="tab-btn block py-2 text-gray-600 hover:bg-gray-200">Inquiries</button>
+                <button data-target="passport" class="tab-btn block py-2 text-gray-600 hover:bg-gray-200">Passport Data</button>
+                <button data-target="airo" class="tab-btn block py-2 text-gray-600 hover:bg-gray-200">Airplane Data</button>
+            </nav>
+        </aside>
+        
+        <main class="flex-1 p-10">
+            <h2 class="text-2xl font-semibold mb-6">Data Overview</h2>
+            
+            <div class="mb-4">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="Search by name or ID" 
+                    class="border border-gray-300 rounded-md p-2 w-full" 
+                />
+            </div>
+
+            <div id="data-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Data will be dynamically injected here -->
+            </div>
+            <button id="export-btn" class="mt-5 bg-blue-500 text-white px-4 py-2 rounded">Export to Excel</button>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-1/3 max-h-[80%] overflow-auto">
+            <h2 class="text-lg font-bold mb-4">Edit Data</h2>
+            <div id="edit-form">
+                <!-- Form fields will be dynamically generated here -->
+            </div>
+            <button id="save-btn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Save Changes</button>
+            <button id="close-modal" class="mt-4 bg-red-500 text-white px-4 py-2 rounded">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbVekVpyDLCiTggbB0sqDhNuTSR_ykLUs",
+            authDomain: "alkashif-enterprices.firebaseapp.com",
+            databaseURL: "https://alkashif-enterprices-default-rtdb.firebaseio.com",
+            projectId: "alkashif-enterprices",
+            storageBucket: "alkashif-enterprices.appspot.com",
+            messagingSenderId: "602766717795",
+            appId: "1:602766717795:web:bd6ebb37d1ed8473085956",
+            measurementId: "G-RXR523SQ1B"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        const fetchData = async (endpoint) => {
+            const dataRef = ref(database, endpoint);
+            const snapshot = await get(dataRef);
+            return snapshot.val();
+        };
+
+        const displayData = (data, endpoint) => {
+            const container = document.getElementById('data-container');
+            container.innerHTML = ''; // Clear previous data
+            if (data) {
+                for (const key in data) {
+                    const item = data[key];
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-5 rounded-lg shadow-lg border-l-4 border-blue-500";
+                    card.innerHTML = `
+                        <h2 class="text-lg font-bold">${item.name || item.start || 'Application Data'}</h2>
+                        <p><strong>ID:</strong> ${key}</p>
+                        ${Object.keys(item).map(k => `<p><strong>${k.charAt(0).toUpperCase() + k.slice(1)}:</strong> ${item[k] || 'N/A'}</p>`).join('')}
+                        <div class="mt-4 flex justify-between">
+                            <button class="edit-btn bg-yellow-500 text-white px-3 py-1 rounded" data-id="${key}" data-endpoint="${endpoint}">Edit</button>
+                            <button class="delete-btn bg-red-500 text-white px-3 py-1 rounded" data-id="${key}" data-endpoint="${endpoint}">Delete</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                }
+            } else {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-lg shadow-lg border-l-4 border-gray-300";
+                card.innerHTML = `<h2 class="text-lg font-bold">No data available.</h2>`;
+                container.appendChild(card);
+            }
+        };
+
+        const openEditModal = (data) => {
+            const modal = document.getElementById('edit-modal');
+            const editForm = document.getElementById('edit-form');
+            editForm.innerHTML = '';
+
+            for (const key in data) {
+                const field = document.createElement('div');
+                field.className = 'mb-4';
+                field.innerHTML = `
+                    <label class="block text-sm font-medium text-gray-700">${key.charAt(0).toUpperCase() + key.slice(1)}</label>
+                    <input type="text" value="${data[key]}" class="mt-1 block w-full border border-gray-300 rounded-md p-2" data-key="${key}" />
+                `;
+                editForm.appendChild(field);
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        const closeEditModal = () => {
+            const modal = document.getElementById('edit-modal');
+            modal.classList.add('hidden');
+        };
+
+        const handleEditSave = async (id, endpoint) => {
+            const modal = document.getElementById('edit-modal');
+            const inputs = modal.querySelectorAll('input');
+
+            const updatedData = {};
+            inputs.forEach(input => {
+                updatedData[input.getAttribute('data-key')] = input.value;
+            });
+
+            const dataRef = ref(database, `${endpoint}/${id}`);
+            await update(dataRef, updatedData);
+            closeEditModal();
+            displayData(await fetchData(endpoint), endpoint);
+        };
+
+        const handleDelete = async (id, endpoint) => {
+            if (confirm("Are you sure you want to delete this item?")) {
+                const dataRef = ref(database, `${endpoint}/${id}`);
+                await remove(dataRef);
+                displayData(await fetchData(endpoint), endpoint);
+            }
+        };
+
+        document.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('edit-btn')) {
+                const id = event.target.getAttribute('data-id');
+                const endpoint = event.target.getAttribute('data-endpoint');
+                const data = await fetchData(endpoint);
+                openEditModal(data[id]);
+            }
+
+            if (event.target.classList.contains('delete-btn')) {
+                const id = event.target.getAttribute('data-id');
+                const endpoint = event.target.getAttribute('data-endpoint');
+                handleDelete(id, endpoint);
+            }
+
+            if (event.target.id === 'close-modal') {
+                closeEditModal();
+            }
+
+            if (event.target.id === 'save-btn') {
+                const id = document.querySelector('.edit-btn[data-id]').getAttribute('data-id');
+                const endpoint = document.querySelector('.edit-btn[data-endpoint]').getAttribute('data-endpoint');
+                handleEditSave(id, endpoint);
+            }
+        });
+
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', async () => {
+            const query = searchInput.value.toLowerCase();
+            const currentEndpoint = document.querySelector('.tab-btn.active').getAttribute('data-target');
+            const data = await fetchData(currentEndpoint);
+
+            const filteredData = Object.entries(data).filter(([key, item]) => {
+                return (
+                    item.name?.toLowerCase().includes(query) || 
+                    key.toLowerCase().includes(query) // Search by ID
+                );
+            });
+
+            displayData(Object.fromEntries(filteredData), currentEndpoint);
+        });
+
+        // Handle tab button clicks
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', async () => {
+                const target = button.getAttribute('data-target');
+                const data = await fetchData(target);
+                displayData(data, target);
+                
+                // Clear search input when switching tabs
+                searchInput.value = '';
+            });
+        });
+
+        const exportToExcel = () => {
+            const data = [];
+            const container = document.getElementById('data-container');
+
+            container.childNodes.forEach(card => {
+                const cardData = {};
+                card.childNodes.forEach(item => {
+                    const label = item.querySelector('strong');
+                    if (label) {
+                        const key = label.textContent.replace(':', '').toLowerCase().trim();
+                        const value = item.textContent.replace(label.textContent, '').trim();
+                        cardData[key] = value;
+                    }
+                });
+                data.push(cardData);
+            });
+
+            // Convert data to CSV format
+            const csv = data.map(row => Object.values(row).join(",")).join("\n");
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.setAttribute('download', 'data_export.csv');
+            a.click();
+        };
+
+        document.getElementById('export-btn').addEventListener('click', exportToExcel);
+
+        // Fetch and display initial data (e.g., for the Visa section)
+        (async () => {
+            const initialData = await fetchData('viza');
+            displayData(initialData, 'viza');
+        })();
+    </script>
+</body>
+</html>
